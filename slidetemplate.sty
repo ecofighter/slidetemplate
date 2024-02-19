@@ -1,0 +1,212 @@
+\NeedsTeXFormat{LaTeX2e}[2022-06-01]
+\RequirePackage{expl3,xparse,xcolor}
+\ProvidesExplPackage{slidetemplate}{2024-01-22}{0.0.1}{slidetemplate}
+\RequirePackage{array}
+
+\dim_new:N \l_slidetemplate_twoelems_former_width_dim
+\dim_new:N \l_slidetemplate_twoelems_latter_width_dim
+
+\DeclareKeys[slidetemplate]{%
+  use_qleap_color .bool_set:N = \l_slidetemplate_use_qleap_color_bool,
+  use_qleap_color .usage:n = load,
+  use_qleap_color .default:n = true,
+  format_func_v .choice:,
+  format_func_v .usage:n = load,
+  format_func_v / columns .code:n = { \cs_new:Nn \g_slidetemplate_twoelems_format_base_v:nnn {\g_slidetemplate_twoelems_format_base_v_columns:nnn{##1}{##2}{##3}} },
+  format_func_v / tabular .code:n = { \cs_new:Nn \g_slidetemplate_twoelems_format_base_v:nnn {\g_slidetemplate_twoelems_format_base_v_tabular:nnn{##1}{##2}{##3}} },
+  format_func_v .initial:n = tabular,
+  % unknown .code:n = {%
+  % \PackageWarning{slidetemplate}{%
+  % Unknown~option~'\l_keys_key_str'~ignored%
+  % }%
+  % },
+  %   unknown .default:V = \c_novalue_tl,
+}
+\ProcessKeyOptions[slidetemplate]
+
+\bool_if:NT \l_slidetemplate_use_qleap_color_bool {
+  % \providecolor{qleap_bluelight}{HTML}{407AAA}
+  % \providecolor{qleap_blue}{HTML}{1a5c97}
+  \providecolor{qleap_green}{HTML}{229293}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_base_v_columns:nnn {
+  \begin{columns}[totalwidth=\dim_use:N\l_slidetemplate_twoelems_totalwidth_dim]
+    \begin{column}{\dim_use:N\l_slidetemplate_twoelems_former_width_dim}
+      #2
+    \end{column}
+    #1
+    \begin{column}{\dim_use:N\l_slidetemplate_twoelems_latter_width_dim}
+      #3
+    \end{column}
+  \end{columns}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_base_v_tabular:nnn {
+  \begin{minipage}{\dim_use:N\l_slidetemplate_twoelems_totalwidth_dim}
+    \begin{tabular}{m{\dim_use:N\l_slidetemplate_twoelems_former_width_dim} @{#1} m{\dim_use:N\l_slidetemplate_twoelems_latter_width_dim}}
+      #2 & #3
+    \end{tabular}
+  \end{minipage}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_v:nnn {
+  \g_slidetemplate_twoelems_format_base_v:nnn{\hspace{\dim_use:N\l_slidetemplate_twoelems_margin_dim}}{#2}{#3}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_v_line:nnn {
+  \g_slidetemplate_twoelems_format_base_v:nnn{\hspace{\dim_eval:n{0.5 \l_slidetemplate_twoelems_margin_dim - 0.5 pt}}\textcolor{qleap_green}{\vrule width 1pt}\hspace{\dim_eval:n{0.5 \l_slidetemplate_twoelems_margin_dim - 0.5 pt}}}{#2}{#3}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_v_arrow:nnn {
+  \g_slidetemplate_twoelems_format_base_v:nnn{\parbox{\dim_use:N\l_slidetemplate_twoelems_margin_dim}{#1}}{#2}{#3}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_base_h_box:nnn {
+  \begin{minipage}[t][\l_slidetemplate_twoelems_totalheight_dim][t]{\l_slidetemplate_twoelems_totalwidth_dim}
+    \fbox{
+    \begin{minipage}[c][(\l_slidetemplate_twoelems_totalheight_dim / 2) - (\l_slidetemplate_twoelems_margin_dim / 2)][c]{1.0\linewidth}
+      #2
+    \end{minipage}
+    }
+    #1
+    \fbox{
+    \begin{minipage}[c][(\l_slidetemplate_twoelems_totalheight_dim / 2) - (\l_slidetemplate_twoelems_margin_dim / 2)][c]{1.0\linewidth}
+      #3
+    \end{minipage}
+    }
+  \end{minipage}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_h:nnn {
+  \g_slidetemplate_twoelems_format_base_h_box:nnn{\skip_vertical:n{\dim_use:N\l_slidetemplate_twoelems_margin_dim}}{#2}{#3}
+}
+
+\cs_new:Nn \g_slidetemplate_twoelems_format_h_line:nnn {
+  \g_slidetemplate_twoelems_format_base_h_box:nnn{
+    \skip_vertical:n{\l_slidetemplate_twoelems_margin_dim / 2 - 0.5pt}
+    \textcolor{qleap_green}{\hrule depth 1pt}
+    \skip_vertical:n{\l_slidetemplate_twoelems_margin_dim / 2 - 0.5pt}
+  }{#2}{#3}
+}
+
+\keys_define:nn{slidetemplate / twoelems}{
+  totalwidth .dim_set:N = \l_slidetemplate_twoelems_totalwidth_dim,
+  totalwidth .value_required:n = true,
+  totalheight .dim_set:N = \l_slidetemplate_twoelems_totalheight_dim,
+  totalheight .value_required:n = true,
+  margin .dim_set:N = \l_slidetemplate_twoelems_margin_dim,
+  totalheight .value_required:n = true,
+  type .choice:,
+  type / veven .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.5\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.5\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v:nnn
+  },
+  type / vright .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.3\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.7\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v:nnn
+  },
+  type / vleft .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.7\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.3\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v:nnn
+  },
+  type / heven .code:n = {
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_h:nnn
+  },
+  type .value_required:n = true,
+}
+\keys_define:nn{slidetemplate / twoelemsline}{
+  totalwidth .dim_set:N = \l_slidetemplate_twoelems_totalwidth_dim,
+  totalwidth .value_required:n = true,
+  totalheight .dim_set:N = \l_slidetemplate_twoelems_totalheight_dim,
+  totalheight .value_required:n = true,
+  margin .dim_set:N = \l_slidetemplate_twoelems_margin_dim,
+  totalheight .value_required:n = true,
+  type .choice:,
+  type / veven .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.5\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.5\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v_line:nnn
+  },
+  type / vright .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.3\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.7\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v_line:nnn
+  },
+  type / vleft .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.7\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.3\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v_line:nnn
+  },
+  type / heven .code:n = {
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_h_line:nnn
+  },
+  type .value_required:n = true,
+}
+\keys_define:nn{slidetemplate / twoelemsarrow}{
+  totalwidth .dim_set:N = \l_slidetemplate_twoelems_totalwidth_dim,
+  totalwidth .value_required:n = true,
+  totalheight .dim_set:N = \l_slidetemplate_twoelems_totalheight_dim,
+  totalheight .value_required:n = true,
+  margin .dim_set:N = \l_slidetemplate_twoelems_margin_dim,
+  totalheight .value_required:n = true,
+  type .choice:,
+  type / veven .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.5\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.5\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v_arrow:nnn
+  },
+  type / vright .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.3\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.7\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v_arrow:nnn
+  },
+  type / vleft .code:n = {
+    \dim_set:Nn \l_slidetemplate_twoelems_former_width_dim {0.7\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \dim_set:Nn \l_slidetemplate_twoelems_latter_width_dim {0.3\l_slidetemplate_twoelems_totalwidth_dim - 0.5\l_slidetemplate_twoelems_margin_dim}
+    \cs_set_eq:NN \l_slidetemplate_twoelems_format:nnn \g_slidetemplate_twoelems_format_v_arrow:nnn
+  },
+  type .value_required:n = true,
+}
+
+\DeclareDocumentCommand\TwoElems{m +m +m}{
+  \group_begin:
+  \makeatletter
+  \keys_set:nn{slidetemplate / twoelems}{
+    totalwidth = 0.96\linewidth,
+    totalheight = 0.96\beamer@frametextheight,
+    margin = 1em,
+    type = #1,
+  }
+  \makeatother
+  \l_slidetemplate_twoelems_format:nnn{}{#2}{#3}
+  \group_end:
+}
+\DeclareDocumentCommand\TwoElemsLine{m +m +m}{
+  \group_begin:
+  \makeatletter
+  \keys_set:nn{slidetemplate / twoelemsline}{
+    totalwidth = 0.96\linewidth,
+    totalheight = 0.96\beamer@frametextheight,
+    margin = 1em,
+    type = #1,
+  }
+  \makeatother
+  \l_slidetemplate_twoelems_format:nnn{}{#2}{#3}
+  \group_end:
+}
+\DeclareDocumentCommand\TwoElemsArrow{m +O{$\Rightarrow$} O{3em} +m +m}{
+  \group_begin:
+  \keys_set:nn{slidetemplate / twoelemsarrow}{
+    totalwidth = 0.96\linewidth,
+    totalheight = 0.96\textheight,
+    type = #1,
+    margin = #3,
+  }
+  \l_slidetemplate_twoelems_format:nnn{#2}{#4}{#5}
+  \group_end:
+}
+\endinput
